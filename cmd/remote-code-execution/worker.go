@@ -49,6 +49,7 @@ func RunWorker(workerId int) {
 		}
 
 	}()
+
 	if err != nil {
 		fmt.Println("Error", err.Error())
 		return
@@ -70,15 +71,15 @@ func RunWorker(workerId int) {
 			continue
 		}
 		var Job *types.Payload_t
-		state.Jobs.Mut.Lock()
-		if len(state.Jobs.List) != 0 {
-			JobVal := state.Jobs.List[0]
-			Job = &JobVal
-			fmt.Println("Got this job", Job.Key, "for the worker", workerId)
-			fmt.Println("deleted that job")
-			state.Jobs.List = state.Jobs.List[1:]
-		}
-		state.Jobs.Mut.Unlock()
+		// state.Jobs.Mut.Lock()
+		// if len(state.Jobs.List) != 0 {
+		// 	JobVal := state.Jobs.List[0]
+		// 	Job = &JobVal
+		// 	fmt.Println("Got this job", Job.Key, "for the worker", workerId)
+		// 	fmt.Println("deleted that job")
+		// 	state.Jobs.List = state.Jobs.List[1:]
+		// }
+		// state.Jobs.Mut.Unlock()
 
 		if Job == nil {
 			continue

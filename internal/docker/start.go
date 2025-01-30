@@ -2,17 +2,22 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"ws-trial/config"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
-func StartContainer(ctx context.Context, cli *client.Client) (string, error) {
-	tmpDir, err := os.MkdirTemp("", "cpp-executor-*")
+func (d *Docker) StartContainer(ctx context.Context) error {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	d.cli = cli
+	d.ctx = ctx
+	if err != nil {
+		log.Fatalf("Failed to create Docker client: %v", err)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "executor-*")
 	if err := os.Chmod(tmpDir, 0777); err != nil {
 		log.Fatalf("Failed to change permissions of temporary directory: %v", err)
 	}
@@ -21,17 +26,17 @@ func StartContainer(ctx context.Context, cli *client.Client) (string, error) {
 		log.Fatalf("Failed to create temporary directory: %v", err)
 	}
 
-	resp, err := cli.ContainerCreate(ctx,
+	resp, err := d.cli.ContainerCreate(d.ctx,
 		&container.Config{
-			Image: config.IMAGE_NAME,
-			Tty:   true, // Enable TTY for interactive input
+			Image: IMAGE_NAME,
+			Tty:   true,
 			// User:  "1000:1000",
 		},
 		&container.HostConfig{
 			Resources: container.Resources{
 				Memory:    512 * 1024 * 1024,
 				CPUQuota:  100000,
-				PidsLimit: &config.MAX_PROCESSES,
+				PidsLimit: &MAX_PROCESSES,
 			},
 			ReadonlyRootfs: true,
 			NetworkMode:    "none",
@@ -41,13 +46,17 @@ func StartContainer(ctx context.Context, cli *client.Client) (string, error) {
 			},
 		}, nil, nil, "")
 	if err != nil {
-		return "", fmt.Errorf("failed to create container: %v", err)
+		return err
 	}
 
-	// Start the container
-	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
-		return "", fmt.Errorf("failed to start container: %v", err)
+	if err := d.cli.ContainerStart(d.ctx, resp.ID, container.StartOptions{}); err != nil {
+		return err
 	}
 
-	return resp.ID, nil
+	d.containerId = resp.ID
+	//fmt.Println(d.cli, d.ctx, d.containerId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

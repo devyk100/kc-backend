@@ -1,9 +1,6 @@
 package config
 
 import (
-	"context"
-	"crypto/tls"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -12,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -50,27 +46,4 @@ func SqsClient() (*sqs.Client, error) {
 	}
 	client := sqs.NewFromConfig(config)
 	return client, err
-}
-
-func RedisClient(ctx context.Context) (*redis.Client, error) {
-	// fmt.Println(os.Getenv(""), env.REDIS_URL)
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error", err.Error())
-		return nil, err
-	}
-	rdb := redis.NewClient(&redis.Options{
-		Addr:      os.Getenv("REDIS_URL"),
-		Password:  os.Getenv("REDIS_PASSWORD"),
-		TLSConfig: &tls.Config{},
-		DB:        0,
-	})
-	// ctx := context.Background()
-	// Ping the Redis server to check the connection
-	pong, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
-	}
-	fmt.Println("Connected to Redis:", pong)
-	return rdb, nil
 }
