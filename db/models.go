@@ -65,6 +65,10 @@ type Submission struct {
 	ID         int32
 	Code       string
 	QuestionID int32
+	Correct    bool
+	Message    string
+	Language   string
+	Duration   int64
 }
 
 type Testcase struct {

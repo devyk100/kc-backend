@@ -8,20 +8,11 @@ import (
 	"ws-trial/db"
 )
 
-func (w Worker) Exec(job Job) FinishedPayload {
+func (w Worker) Exec(job Job, query *db.Queries) FinishedPayload {
 	// fetch input testcases, and output testcases
-	query, pool, err := db.InitDb(w.ctx)
-	defer pool.Close()
-	if err != nil {
-		fmt.Println("Error occured at db initialisation ", err.Error())
-		return FinishedPayload{
-			Message: "Error",
-			Where:   "Some error occurred at the server",
-		}
-	}
 	row, err := query.GetAllTestcases(w.ctx, int32(job.Qid))
 	if err != nil {
-		fmt.Print("Error in fetching the testcases ", err.Error())
+		fmt.Print("Error in fetching the testcases ", err.Error(), "\n\n")
 		return FinishedPayload{
 			Message: "Error",
 			Where:   "Some error occured at the server",
@@ -104,13 +95,13 @@ func (w Worker) Exec(job Job) FinishedPayload {
 			if expectedLines[i] != actualLines[i] {
 				fmt.Printf("%#v\n", expectedLines[i])
 				fmt.Printf("%#v\n", actualLines[i])
-				return FinishedPayload{Message: "Wrong output", Where: "Testcase " + strconv.Itoa(int(val.TestcaseOrder.Int32+1)) + " Line no. " + strconv.Itoa(i+1) + ", expected " + expectedLines[i] + " getting  " + actualLines[i], TimeTaken: duration}
+				return FinishedPayload{Message: "Wrong output", Where: "Testcase " + strconv.Itoa(int(val.TestcaseOrder.Int32+1)) + " Line no. " + strconv.Itoa(i+1) + ", expected " + expectedLines[i] + " getting  " + actualLines[i], TimeTaken: int32(duration.Milliseconds())}
 			}
 		}
 	}
 	fmt.Print("It was correct!!!")
 	return FinishedPayload{
 		Message:   "Correct",
-		TimeTaken: duration,
+		TimeTaken: int32(duration.Milliseconds()),
 	}
 }

@@ -24,3 +24,15 @@ FROM "Question" q
 LEFT JOIN "Testcases" t ON q.id = t.qid
 WHERE q.id = $1
 ORDER BY t.order ASC;
+
+-- name: InsertSubmission :one
+INSERT INTO "Submission" (
+    "code",
+    "message",
+    "correct",
+    "question_id",
+    "language",
+    "duration"
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING *;

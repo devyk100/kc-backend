@@ -123,3 +123,47 @@ func (q *Queries) GetUserFromUsername(ctx context.Context, username string) (Use
 	)
 	return i, err
 }
+
+const insertSubmission = `-- name: InsertSubmission :one
+INSERT INTO "Submission" (
+    "code",
+    "message",
+    "correct",
+    "question_id",
+    "language",
+    "duration"
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, code, question_id, correct, message, language, duration
+`
+
+type InsertSubmissionParams struct {
+	Code       string
+	Message    string
+	Correct    bool
+	QuestionID int32
+	Language   string
+	Duration   int64
+}
+
+func (q *Queries) InsertSubmission(ctx context.Context, arg InsertSubmissionParams) (Submission, error) {
+	row := q.db.QueryRow(ctx, insertSubmission,
+		arg.Code,
+		arg.Message,
+		arg.Correct,
+		arg.QuestionID,
+		arg.Language,
+		arg.Duration,
+	)
+	var i Submission
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.QuestionID,
+		&i.Correct,
+		&i.Message,
+		&i.Language,
+		&i.Duration,
+	)
+	return i, err
+}

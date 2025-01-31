@@ -87,3 +87,33 @@ ALTER TABLE "Testcases" ALTER COLUMN "output" DROP NOT NULL;
 */
 -- AlterTable
 ALTER TABLE "Testcases" ALTER COLUMN "output" SET NOT NULL;
+
+
+/*
+  Warnings:
+
+  - Added the required column `correct` to the `Submission` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `message` to the `Submission` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- AlterTable
+ALTER TABLE "Submission" ADD COLUMN     "correct" BOOLEAN NOT NULL,
+ADD COLUMN     "message" TEXT NOT NULL;
+
+
+/*
+  Warnings:
+
+  - Added the required column `language` to the `Submission` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- AlterTable
+ALTER TABLE "Submission" ADD COLUMN     "language" TEXT NOT NULL;
+/*
+  Warnings:
+
+  - Added the required column `duration` to the `Submission` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- AlterTable
+ALTER TABLE "Submission" ADD COLUMN     "duration" BIGINT NOT NULL;
