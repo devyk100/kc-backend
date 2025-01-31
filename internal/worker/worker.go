@@ -9,10 +9,10 @@ import (
 )
 
 type Job struct {
-	Code     string
-	Qid      int
-	Language string
-	QueryKey string
+	Code     string `json:"code"`
+	Qid      int    `json:"qid"`
+	Language string `json:"lang"`
+	QueryKey string `json:"querykey"`
 }
 
 type Worker struct {

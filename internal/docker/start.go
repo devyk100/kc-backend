@@ -43,6 +43,10 @@ func (d *Docker) StartContainer(ctx context.Context) error {
 			Binds: []string{
 				tmpDir + ":/tmp/cpp", // Mount the temporary directory as writable
 				tmpDir + ":/tmp:z",
+				tmpDir + ":/tmp/go",
+				tmpDir + ":/tmp/java",
+				tmpDir + ":/tmp/python",
+				tmpDir + ":/tmp/js",
 			},
 		}, nil, nil, "")
 	if err != nil {
@@ -54,9 +58,5 @@ func (d *Docker) StartContainer(ctx context.Context) error {
 	}
 
 	d.containerId = resp.ID
-	//fmt.Println(d.cli, d.ctx, d.containerId)
-	if err != nil {
-		return err
-	}
 	return nil
 }
