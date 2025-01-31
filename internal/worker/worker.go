@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 	"ws-trial/internal/docker"
 	kcredis "ws-trial/internal/kc_redis"
 )
@@ -13,6 +14,12 @@ type Job struct {
 	Qid      int    `json:"qid"`
 	Language string `json:"lang"`
 	QueryKey string `json:"querykey"`
+}
+
+type FinishedPayload struct {
+	Message   string        `json:"message"`
+	Where     string        `json:"where"`
+	TimeTaken time.Duration `json:"timetaken"`
 }
 
 type Worker struct {
@@ -55,7 +62,8 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 						return
 					}
 					fmt.Println("Got this", val)
-					w.Exec(payload)
+					f := w.Exec(payload)
+					fmt.Print(f.Message, f.TimeTaken, f.Where)
 				}
 			}
 		}

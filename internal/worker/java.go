@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (w *Worker) runJavaInContainer(job *Job) {
+func (w *Worker) createJavaFile(code string) string {
 	permCmd := "ls -ld /tmp/java"
 	permOutput, err := w.dockerContainer.ExecInContainer(permCmd)
 	if err != nil {
@@ -14,34 +14,42 @@ func (w *Worker) runJavaInContainer(job *Job) {
 	}
 	log.Println("Permissions of /tmp/java:", permOutput)
 
-	javaFileName := "/tmp/cpp/Program.java"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(job.Code, "'", "'\\''"), javaFileName)
+	javaFileName := "/tmp/cpp/Main.java"
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), javaFileName)
 	_, err = w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 
 	}
+	return javaFileName
+}
 
-	compileCmd := fmt.Sprintf("javac %s", javaFileName)
+func (w *Worker) compileJava(filename string) (string, error) {
+	compileCmd := fmt.Sprintf("javac %s", filename)
 	compileOutput, err := w.dockerContainer.ExecInContainer(compileCmd)
 	fmt.Println(compileOutput)
-
-	if err != nil {
+	if compileOutput != "" {
+		err = fmt.Errorf("compile error")
 	}
-	// fetch all the input test cases
-	// fetch all the required outputs
+	return compileOutput, err
+}
 
-	stdinInput := "1"
-	runCmd := fmt.Sprintf("echo '%s' | java -cp /tmp/java Program", stdinInput)
-	runOutput, err := w.dockerContainer.ExecInContainer(runCmd)
-	fmt.Print(runOutput)
-	if err != nil {
-		// Handle error
-	}
+func (w *Worker) execJava(testcaseInput string) (chan string, error) {
+	c := make(chan string)
+	go func() {
+		runCmd := fmt.Sprintf("echo '%s' | java -cp /tmp/java Main", testcaseInput)
+		runOutput, err := w.dockerContainer.ExecInContainer(runCmd)
+		c <- runOutput
+		if err != nil {
+			// Handle error
+		}
+	}()
+	return c, nil
+}
 
-	cleanupCmd := fmt.Sprintf("rm %s /tmp/java/Program.class", javaFileName)
-	_, err = w.dockerContainer.ExecInContainer(cleanupCmd)
+func (w *Worker) cleanUpJava(filename string) {
+	cleanupCmd := fmt.Sprintf("rm %s /tmp/java/Program.class", filename)
+	_, err := w.dockerContainer.ExecInContainer(cleanupCmd)
 	if err != nil {
 		log.Printf("Warning: failed to clean up files: %v", err)
 	}
-
 }
