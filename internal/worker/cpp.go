@@ -32,17 +32,18 @@ func (w *Worker) compileCpp(filename string) (string, error) {
 	return compileOutput, err
 }
 
-func (w *Worker) execCpp(testcaseInput string) (chan string, error) {
+func (w *Worker) execCpp(testcaseInput string) chan string {
 	c := make(chan string)
 	go func() {
 		runCmd := fmt.Sprintf("echo '%s' | /tmp/cpp/program", testcaseInput)
 		runOutput, err := w.dockerContainer.ExecInContainer(runCmd)
 		if err != nil {
-
+			c <- err.Error()
+			return
 		}
 		c <- runOutput
 	}()
-	return c, nil
+	return c
 }
 
 func (w *Worker) cleanUpCpp(filename string) {

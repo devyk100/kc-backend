@@ -2,25 +2,19 @@ package orchestrator
 
 import (
 	"context"
-	kcredis "ws-trial/internal/kc_redis"
+	"fmt"
 	"ws-trial/internal/worker"
 )
 
 type Orchestrator struct {
-	redisClient *kcredis.RedisClient
-	ctx         context.Context
-	Workers     []worker.Worker
+	ctx     context.Context
+	Workers []worker.Worker
 }
 
 func (o *Orchestrator) Run(ctx context.Context) {
 	o.ctx = ctx
-	redisClient, err := kcredis.CreateRedisClient(ctx)
-	if err != nil {
-		return
-	}
-	o.redisClient = redisClient
-	o.Workers = make([]worker.Worker, 3)
-
+	o.Workers = make([]worker.Worker, 2)
+	fmt.Println("Starting ", len(o.Workers), "Workers")
 	for i := 0; i < len(o.Workers); i++ {
 		ctx, cancel := context.WithCancel(o.ctx)
 		o.Workers[i].Run(ctx, cancel)

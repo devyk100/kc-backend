@@ -40,11 +40,6 @@ func CreateRedisClient(ctx context.Context) (*RedisClient, error) {
 	return &RedisClient_v, err
 }
 
-func (r *RedisClient) Receive() (string, error) {
-	result, err := r.redisClient.BLPop(r.ctx, 0, "jobs").Result()
-	return result[1], err
-}
-
 func (r *RedisClient) Exit() {
 	r.redisClient.Close()
 }

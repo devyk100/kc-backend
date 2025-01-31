@@ -33,17 +33,18 @@ func (w *Worker) compileJava(filename string) (string, error) {
 	return compileOutput, err
 }
 
-func (w *Worker) execJava(testcaseInput string) (chan string, error) {
+func (w *Worker) execJava(testcaseInput string) chan string {
 	c := make(chan string)
 	go func() {
 		runCmd := fmt.Sprintf("echo '%s' | java -cp /tmp/java Main", testcaseInput)
 		runOutput, err := w.dockerContainer.ExecInContainer(runCmd)
-		c <- runOutput
 		if err != nil {
-			// Handle error
+			c <- err.Error()
+			return
 		}
+		c <- runOutput
 	}()
-	return c, nil
+	return c
 }
 
 func (w *Worker) cleanUpJava(filename string) {

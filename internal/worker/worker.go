@@ -62,8 +62,13 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 						return
 					}
 					fmt.Println("Got this", val)
-					f := w.Exec(payload)
-					fmt.Print(f.Message, f.TimeTaken, f.Where)
+					resp := w.Exec(payload)
+					fmt.Print(resp.Message, resp.TimeTaken, resp.Where)
+					respStr, err := json.Marshal(resp)
+					if err != nil {
+						fmt.Println("Error at marshalling", err.Error())
+					}
+					w.redisClient.PutFinishedJob(payload.QueryKey, string(respStr))
 				}
 			}
 		}

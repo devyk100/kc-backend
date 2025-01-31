@@ -13,34 +13,44 @@ func (w Worker) Exec(job Job) FinishedPayload {
 	query, pool, err := db.InitDb(w.ctx)
 	defer pool.Close()
 	if err != nil {
-
+		fmt.Println("Error occured at db initialisation ", err.Error())
+		return FinishedPayload{
+			Message: "Error",
+			Where:   "Some error occurred at the server",
+		}
 	}
-
 	row, err := query.GetAllTestcases(w.ctx, int32(job.Qid))
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Print("Error in fetching the testcases ", err.Error())
+		return FinishedPayload{
+			Message: "Error",
+			Where:   "Some error occured at the server",
+		}
 	}
+
+	// compile and filecreation setup for all the languages
 	var filename string
 	var compileOut string
 
-	// first setup for all the languages
 	switch job.Language {
 	case "c++":
 		filename = w.createCppFile(job.Code)
 		compileOut, err = w.compileCpp(filename)
+		defer w.cleanUpCpp(filename)
 	case "java":
 		filename = w.createJavaFile(job.Code)
 		compileOut, err = w.compileJava(filename)
-		break
+		defer w.cleanUpJava(filename)
 	case "python":
-		w.runPythonInContainer(&job)
-		break
+		filename = w.createPythonFile(job.Code)
+		defer w.cleanUpPython(filename)
 	case "javascript":
-		w.runJavaScriptInContainer(&job)
-		break
+		filename = w.createJavascriptFile(job.Code)
+		defer w.cleanUpJavascript(filename)
 	case "go":
-		w.runGoInContainer(&job)
-		break
+		filename = w.createGoFile(job.Code)
+		compileOut, err = w.compileGo(filename)
+		defer w.cleanUpGo(filename)
 	default:
 	}
 	if err != nil {
@@ -58,13 +68,15 @@ func (w Worker) Exec(job Job) FinishedPayload {
 		start := time.Now()
 		switch job.Language {
 		case "c++":
-			outputChan, err = w.execCpp(val.TestcaseInput.String)
+			outputChan = w.execCpp(val.TestcaseInput.String)
 		case "java":
-			outputChan, err = w.execJava(val.TestcaseInput.String)
-		}
-		if err != nil {
+			outputChan = w.execJava(val.TestcaseInput.String)
+		case "python":
+			outputChan = w.execPython(val.TestcaseInput.String, filename)
+		case "javascript":
 
 		}
+
 		select {
 		case <-time.After(1 * time.Minute):
 			w.dockerContainer.RestartContainer()
@@ -73,6 +85,7 @@ func (w Worker) Exec(job Job) FinishedPayload {
 			}
 		case outputString = <-outputChan:
 		}
+
 		since := time.Since(start)
 		duration += since
 
