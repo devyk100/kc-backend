@@ -74,7 +74,9 @@ func (w Worker) Exec(job Job) FinishedPayload {
 		case "python":
 			outputChan = w.execPython(val.TestcaseInput.String, filename)
 		case "javascript":
-
+			outputChan = w.execJavascript(val.TestcaseInput.String, filename)
+		case "go":
+			outputChan = w.execGo(val.TestcaseInput.String)
 		}
 
 		select {

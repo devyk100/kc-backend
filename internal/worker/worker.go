@@ -30,13 +30,17 @@ type Worker struct {
 }
 
 func (w *Worker) Exit() {
+	w.dockerContainer.Exit()
 	w.redisClient.Exit()
 }
 
 func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
+	var payload Job
+	var val string
+
 	w.ctx = ctx
 	w.Cancel = cancel
-	w.dockerContainer.StartContainer(w.ctx)
+	w.dockerContainer.StartContainer(context.Background())
 	redisClient, err := kcredis.CreateRedisClient(w.ctx)
 	if err != nil {
 		w.Exit()
@@ -48,11 +52,15 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 			select {
 			case <-w.ctx.Done():
 				fmt.Println("Worker received stop signal. Exiting...")
+				w.redisClient.RePut(val)
 				return
 			default:
 				{
-					var payload Job
 					val, err := w.redisClient.Receive()
+					if val == "" {
+						continue
+					}
+
 					if err != nil {
 						w.Exit()
 					}
