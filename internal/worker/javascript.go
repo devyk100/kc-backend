@@ -3,12 +3,11 @@ package worker
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (w *Worker) createJavascriptFile(code string) string {
 	jsFileName := "/tmp/js/program.js"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), jsFileName)
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", code, jsFileName)
 	_, err := w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 		// Handle error

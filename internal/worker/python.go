@@ -3,12 +3,11 @@ package worker
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (w *Worker) createPythonFile(code string) string {
 	pyFileName := "/tmp/python/program.py"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), pyFileName)
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", code, pyFileName)
 	_, err := w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 		// Handle error

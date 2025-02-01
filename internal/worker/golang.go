@@ -3,7 +3,6 @@ package worker
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (w *Worker) createGoFile(code string) string {
@@ -15,7 +14,7 @@ func (w *Worker) createGoFile(code string) string {
 	log.Println("Permissions of /tmp/go:", permOutput)
 
 	goFileName := "/tmp/cpp/program.go"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), goFileName)
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", code, goFileName)
 	_, err = w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 

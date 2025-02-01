@@ -43,7 +43,8 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 	if err != nil {
 		fmt.Println("Error occured at db initialisation ", err.Error())
 	}
-	w.dockerContainer.StartContainer(context.Background()) // Using this child context is making things complicated, and the docker container client detaches with the bottommost child context called cancel, and hence killing the containers is out of the question, rather let it rely on the parent context.
+	// concontext.WithCancel()
+	w.dockerContainer.StartContainer(w.ctx) // Using this child context is making things complicated, and the docker container client detaches with the bottommost child context called cancel, and hence killing the containers is out of the question, rather let it rely on the parent context.
 	redisClient, err := kcredis.CreateRedisClient(w.ctx)
 	if err != nil {
 		w.Exit()

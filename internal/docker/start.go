@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 func (d *Docker) StartContainer(ctx context.Context) error {
@@ -31,15 +32,10 @@ func (d *Docker) StartContainer(ctx context.Context) error {
 		&container.Config{
 			Image: IMAGE_NAME,
 			Tty:   true,
-			Env: []string{
-				"LANG=en_US.UTF-8",
-				"LC_ALL=en_US.UTF-8",
-				"DONT_POLLUTE_OUTPUT_WITH_UTF8=1", // If you need it
-			},
-
 			// User:  "1000:1000",
 		},
 		&container.HostConfig{
+
 			Resources: container.Resources{
 				Memory:    4 * 512 * 1024 * 1024,
 				CPUQuota:  200000,
@@ -54,7 +50,7 @@ func (d *Docker) StartContainer(ctx context.Context) error {
 			},
 			AutoRemove:     true,
 			ReadonlyRootfs: true,
-			NetworkMode:    "none",
+			// NetworkMode:    "none",
 			Binds: []string{
 				tmpDir + ":/tmp/cpp", // Mount the temporary directory as writable
 				tmpDir + ":/tmp:z",
@@ -63,7 +59,7 @@ func (d *Docker) StartContainer(ctx context.Context) error {
 				tmpDir + ":/tmp/python",
 				tmpDir + ":/tmp/js",
 			},
-		}, nil, nil, "")
+		}, nil, v1.DescriptorEmptyJSON.Platform, "")
 	if err != nil {
 		return err
 	}

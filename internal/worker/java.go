@@ -3,7 +3,6 @@ package worker
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (w *Worker) createJavaFile(code string) string {
@@ -15,7 +14,7 @@ func (w *Worker) createJavaFile(code string) string {
 	log.Println("Permissions of /tmp/java:", permOutput)
 
 	javaFileName := "/tmp/cpp/Main.java"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), javaFileName)
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", (code), javaFileName)
 	_, err = w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 

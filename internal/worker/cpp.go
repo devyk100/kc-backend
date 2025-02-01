@@ -3,7 +3,6 @@ package worker
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (w *Worker) createCppFile(code string) string {
@@ -15,7 +14,7 @@ func (w *Worker) createCppFile(code string) string {
 	log.Println("Permissions of /tmp/cpp:", permOutput)
 
 	cppFileName := "/tmp/cpp/program.cpp"
-	createFileCmd := fmt.Sprintf("echo '%s' > %s", strings.ReplaceAll(code, "'", "'\\''"), cppFileName)
+	createFileCmd := fmt.Sprintf("echo '%s' > %s", code, cppFileName)
 	_, err = w.dockerContainer.ExecInContainer(createFileCmd)
 	if err != nil {
 
@@ -35,7 +34,8 @@ func (w *Worker) compileCpp(filename string) (string, error) {
 func (w *Worker) execCpp(testcaseInput string) chan string {
 	c := make(chan string)
 	go func() {
-		runCmd := fmt.Sprintf("echo '%s' | /tmp/cpp/program", testcaseInput)
+		runCmd := fmt.Sprintf("echo '%s' > /tmp/input.txt && /tmp/cpp/program < /tmp/input.txt", testcaseInput)
+
 		runOutput, err := w.dockerContainer.ExecInContainer(runCmd)
 		if err != nil {
 			c <- err.Error()
