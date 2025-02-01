@@ -2,13 +2,37 @@ package worker
 
 import (
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 	"time"
 	"ws-trial/db"
 )
 
+func FilterTestcases(testcaseOut string, actualOut string) ([]string, []string) {
+	expectedLines := strings.Split(strings.TrimSpace(testcaseOut), "\n")
+	actualLines := strings.Split(strings.TrimSpace(actualOut), "\n")
+	filteredExpected := []string{}
+	for _, line := range expectedLines {
+		cleaned := removeNonPrintableChars(strings.TrimSpace(line))
+		if cleaned != "" {
+			filteredExpected = append(filteredExpected, cleaned)
+		}
+	}
+
+	filteredActual := []string{}
+	for _, line := range actualLines {
+		cleaned := removeNonPrintableChars(strings.TrimSpace(line))
+		if cleaned != "" {
+			filteredActual = append(filteredActual, cleaned)
+		}
+	}
+
+	return filteredExpected, filteredActual
+}
+
 func (w Worker) Exec(job Job, query *db.Queries) FinishedPayload {
+	job.Code = html.UnescapeString(job.Code)
 	// fetch input testcases, and output testcases
 	row, err := query.GetAllTestcases(w.ctx, int32(job.Qid))
 	if err != nil {
@@ -81,22 +105,19 @@ func (w Worker) Exec(job Job, query *db.Queries) FinishedPayload {
 
 		since := time.Since(start)
 		duration += since
-
-		expectedLines := strings.Split(strings.TrimSpace(val.TestcaseOutput.String), "\n")
-		actualLines := strings.Split(strings.TrimSpace(outputString), "\n")
-		for i := range expectedLines {
-			expectedLines[i] = removeNonPrintableChars(strings.TrimSpace(expectedLines[i]))
-		}
-		for i := range actualLines {
-			actualLines[i] = removeNonPrintableChars(strings.TrimSpace(actualLines[i]))
-		}
-
-		for i := range expectedLines {
+		fmt.Println("Actual output", outputString)
+		outputString = removeNonPrintableChars(outputString)
+		expectedLines, actualLines := FilterTestcases(val.TestcaseOutput.String, outputString)
+		i := 0
+		for ; i < len(expectedLines) && i < len(actualLines); i++ {
 			if expectedLines[i] != actualLines[i] {
 				fmt.Printf("%#v\n", expectedLines[i])
 				fmt.Printf("%#v\n", actualLines[i])
 				return FinishedPayload{Message: "Wrong output", Where: "Testcase " + strconv.Itoa(int(val.TestcaseOrder.Int32+1)) + " Line no. " + strconv.Itoa(i+1) + ", expected " + expectedLines[i] + " getting  " + actualLines[i], TimeTaken: int32(duration.Milliseconds())}
 			}
+		}
+		if i < len(expectedLines) {
+			return FinishedPayload{Message: "Wrong output", Where: "Testcase no of output is not same" + val.TestcaseOutput.String + " your out " + outputString, TimeTaken: int32(duration.Milliseconds())}
 		}
 	}
 	fmt.Print("It was correct!!!")

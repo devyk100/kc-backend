@@ -1,13 +1,17 @@
 package worker
 
-import "unicode"
+import (
+	"strings"
+)
 
 func removeNonPrintableChars(s string) string {
 	var result []rune
 	for _, r := range s {
-		if unicode.IsPrint(r) || unicode.IsSpace(r) { // Allow printable characters and space
+		// Allow printable characters, space, and allow typical control characters like \n, \r, and \t
+		if (r >= 32 && r <= 126) || r == '\n' || r == '\r' || r == '\t' {
 			result = append(result, r)
 		}
+
 	}
-	return string(result)
+	return strings.TrimSpace(string(result))
 }

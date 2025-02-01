@@ -25,7 +25,7 @@ func (w *Worker) createCppFile(code string) string {
 
 func (w *Worker) compileCpp(filename string) (string, error) {
 	compileCmd := fmt.Sprintf("g++ %s -o /tmp/cpp/program", filename)
-	compileOutput, err := w.dockerContainer.ExecInContainer(compileCmd)
+	compileOutput, err := w.dockerContainer.ExecInContainerStdCopy(compileCmd)
 	if compileOutput != "" {
 		err = fmt.Errorf("compile error")
 	}
