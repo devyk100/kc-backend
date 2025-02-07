@@ -14,46 +14,15 @@ CREATE TABLE "User" (
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 -- CreateTable
 CREATE TABLE "Question" (
     "id" SERIAL NOT NULL,
     "body" TEXT NOT NULL,
     "driver_code" TEXT,
-    "input_testcases" TEXT NOT NULL,
-    "output" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
 
     CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
 );
-/*
-  Warnings:
-
-  - A unique constraint covering the columns `[body]` on the table `Question` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `email` to the `Question` table without a default value. This is not possible if the table is not empty.
-
-*/
--- AlterTable
-ALTER TABLE "Question" ADD COLUMN     "email" TEXT NOT NULL;
-
--- CreateIndex
-CREATE UNIQUE INDEX "Question_body_key" ON "Question"("body");
-
--- AddForeignKey
-ALTER TABLE "Question" ADD CONSTRAINT "Question_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
-/*
-  Warnings:
-
-  - You are about to drop the column `input_testcases` on the `Question` table. All the data in the column will be lost.
-  - You are about to drop the column `output` on the `Question` table. All the data in the column will be lost.
-
-*/
--- AlterTable
-ALTER TABLE "Question" DROP COLUMN "input_testcases",
-DROP COLUMN "output";
 
 -- CreateTable
 CREATE TABLE "Testcases" (
@@ -71,49 +40,43 @@ CREATE TABLE "Submission" (
     "id" SERIAL NOT NULL,
     "code" TEXT NOT NULL,
     "question_id" INTEGER NOT NULL,
+    "message" TEXT NOT NULL,
+    "correct" BOOLEAN NOT NULL,
+    "language" TEXT NOT NULL,
+    "duration" BIGINT NOT NULL,
 
     CONSTRAINT "Submission_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Question_body_key" ON "Question"("body");
+
+-- AddForeignKey
+ALTER TABLE "Question" ADD CONSTRAINT "Question_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "Testcases" ADD CONSTRAINT "Testcases_qid_fkey" FOREIGN KEY ("qid") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
--- AlterTable
-ALTER TABLE "Testcases" ALTER COLUMN "output" DROP NOT NULL;
 /*
   Warnings:
 
-  - Made the column `output` on table `Testcases` required. This step will fail if there are existing NULL values in that column.
+  - Added the required column `email` to the `Submission` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `email` to the `Testcases` table without a default value. This is not possible if the table is not empty.
 
 */
 -- AlterTable
-ALTER TABLE "Testcases" ALTER COLUMN "output" SET NOT NULL;
+ALTER TABLE "Submission" ADD COLUMN     "email" TEXT NOT NULL;
 
-
-/*
-  Warnings:
-
-  - Added the required column `correct` to the `Submission` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `message` to the `Submission` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- AlterTable
-ALTER TABLE "Submission" ADD COLUMN     "correct" BOOLEAN NOT NULL,
-ADD COLUMN     "message" TEXT NOT NULL;
+ALTER TABLE "Testcases" ADD COLUMN     "email" TEXT NOT NULL;
 
+-- AddForeignKey
+ALTER TABLE "Testcases" ADD CONSTRAINT "Testcases_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
-/*
-  Warnings:
-
-  - Added the required column `language` to the `Submission` table without a default value. This is not possible if the table is not empty.
-
-*/
--- AlterTable
-ALTER TABLE "Submission" ADD COLUMN     "language" TEXT NOT NULL;
-/*
-  Warnings:
-
-  - Added the required column `duration` to the `Submission` table without a default value. This is not possible if the table is not empty.
-
-*/
--- AlterTable
-ALTER TABLE "Submission" ADD COLUMN     "duration" BIGINT NOT NULL;
+-- AddForeignKey
+ALTER TABLE "Submission" ADD CONSTRAINT "Submission_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;

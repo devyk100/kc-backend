@@ -65,10 +65,11 @@ type Submission struct {
 	ID         int32
 	Code       string
 	QuestionID int32
-	Correct    bool
 	Message    string
+	Correct    bool
 	Language   string
 	Duration   int64
+	Email      string
 }
 
 type Testcase struct {
@@ -77,6 +78,7 @@ type Testcase struct {
 	Output string
 	Order  int32
 	Qid    int32
+	Email  string
 }
 
 type User struct {

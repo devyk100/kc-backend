@@ -1,4 +1,4 @@
-package orchestrator
+package judge_orchestrator
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type Orchestrator struct {
 
 func (o *Orchestrator) Run(ctx context.Context) {
 	o.ctx = ctx
-	o.Workers = make([]worker.Worker, 2)
+	o.Workers = make([]worker.Worker, 1)
 	fmt.Println("Starting ", len(o.Workers), "Workers")
 	for i := 0; i < len(o.Workers); i++ {
 		ctx, cancel := context.WithCancel(o.ctx)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"ws-trial/db"
+	"ws-trial/internal/auth"
 	"ws-trial/internal/docker"
 	kcredis "ws-trial/internal/kc_redis"
 )
@@ -13,6 +14,7 @@ type Job struct {
 	Code     string `json:"code"`
 	Qid      int    `json:"qid"`
 	Language string `json:"lang"`
+	Token    string `json:"token"`
 	QueryKey string `json:"querykey"`
 }
 
@@ -76,6 +78,12 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 					}
 					fmt.Println("Got this", val)
 					resp := w.Exec(payload, query)
+
+					isAuth, email, err := auth.JwtAuth(w.ctx, &payload.Token, query)
+					if err != nil || !isAuth {
+						fmt.Println("Error", err.Error())
+					}
+
 					fmt.Print(resp.Message, resp.TimeTaken, resp.Where)
 					respStr, err := json.Marshal(resp)
 					if err != nil {
@@ -89,6 +97,7 @@ func (w *Worker) Run(ctx context.Context, cancel context.CancelFunc) {
 						QuestionID: int32(payload.Qid),
 						Language:   payload.Language,
 						Duration:   int64(resp.TimeTaken),
+						Email:      email,
 					})
 					if err != nil {
 						fmt.Println("Err", err.Error())

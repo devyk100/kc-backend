@@ -6,7 +6,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"ws-trial/internal/orchestrator"
+	ws_server "ws-trial/cmd/yjs-ws-server"
+	"ws-trial/internal/judge_orchestrator"
 )
 
 func main() {
@@ -20,6 +21,10 @@ func main() {
 		cancel()
 	}()
 
-	o := orchestrator.Orchestrator{}
+	go func() {
+		ws_server.Start()
+	}()
+
+	o := judge_orchestrator.Orchestrator{}
 	o.Run(ctx)
 }

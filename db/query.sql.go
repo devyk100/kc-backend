@@ -131,10 +131,11 @@ INSERT INTO "Submission" (
     "correct",
     "question_id",
     "language",
-    "duration"
+    "duration",
+    "email"
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
-) RETURNING id, code, question_id, correct, message, language, duration
+    $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, code, question_id, message, correct, language, duration, email
 `
 
 type InsertSubmissionParams struct {
@@ -144,6 +145,7 @@ type InsertSubmissionParams struct {
 	QuestionID int32
 	Language   string
 	Duration   int64
+	Email      string
 }
 
 func (q *Queries) InsertSubmission(ctx context.Context, arg InsertSubmissionParams) (Submission, error) {
@@ -154,16 +156,18 @@ func (q *Queries) InsertSubmission(ctx context.Context, arg InsertSubmissionPara
 		arg.QuestionID,
 		arg.Language,
 		arg.Duration,
+		arg.Email,
 	)
 	var i Submission
 	err := row.Scan(
 		&i.ID,
 		&i.Code,
 		&i.QuestionID,
-		&i.Correct,
 		&i.Message,
+		&i.Correct,
 		&i.Language,
 		&i.Duration,
+		&i.Email,
 	)
 	return i, err
 }
